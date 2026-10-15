@@ -1,0 +1,27 @@
+{
+  "name": "medicore-hms",
+  "version": "1.0.0",
+  "description": "MediCore HMS — University Final-Year Hospital Management System",
+  "private": true,
+  "scripts": {
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build:server": "npm --prefix server run build",
+    "build:client": "npm --prefix client run build",
+    "build": "npm run build:server && npm run build:client",
+    "test:server": "npm --prefix server test",
+    "seed": "npm --prefix server run seed",
+    "seed:atlas": "npm --prefix server run seed:atlas",
+    "atlas:check": "npm --prefix server run atlas:check"
+  },
+  "keywords": [
+    "hospital-management-system",
+    "react",
+    "express",
+    "mongodb",
+    "typescript",
+    "tailwind-css"
+  ],
+  "author": "MediCore HMS Team",
+  "license": "MIT"
+}
