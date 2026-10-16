@@ -97,7 +97,7 @@ export const ServicesPage: React.FC = () => {
       CONSULTATION: 'bg-blue-50 text-blue-700 border-blue-200',
       ROOM_CHARGE: 'bg-purple-50 text-purple-700 border-purple-200',
     };
-    return map[cat] || 'bg-gray-50 text-gray-700 border-gray-200';
+    return map[cat] || 'bg-slate-50 text-slate-700 border-slate-200';
   };
 
   return (
@@ -105,15 +105,20 @@ export const ServicesPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Hospital Services & Diagnostics</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Diagnostic lab tests, imaging, surgical procedures, and standard charge schedule
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-navy-950 tracking-tight">Hospital Services & Diagnostics</h1>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-800 border border-cyan-200">
+              Standard Tariff
+            </span>
+          </div>
+          <p className="text-sm text-slate-500 mt-1">
+            Diagnostic lab tests, imaging, surgical procedures, and standard hospital charge schedule
           </p>
         </div>
         {user?.role === 'ADMIN' && (
           <button
             onClick={() => setCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1e3a5f] hover:bg-[#162d4a] text-white text-sm font-medium transition-colors shadow-sm"
+            className="btn-primary"
           >
             <Plus className="w-4 h-4" /> Add Hospital Service
           </button>
@@ -121,9 +126,9 @@ export const ServicesPage: React.FC = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="card p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5 pointer-events-none" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={search}
@@ -132,7 +137,7 @@ export const ServicesPage: React.FC = () => {
               setPage(1);
             }}
             placeholder="Search service name or code (e.g. CBC, MRI)..."
-            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/20 focus:border-[#1e3a5f]"
+            className="form-input pl-9"
           />
         </div>
 
@@ -143,7 +148,7 @@ export const ServicesPage: React.FC = () => {
               setCategoryFilter(e.target.value);
               setPage(1);
             }}
-            className="px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/20 focus:border-[#1e3a5f]"
+            className="form-select py-1.5 text-xs"
           >
             <option value="">All Categories</option>
             <option value="LABORATORY">Laboratory Tests</option>
@@ -155,108 +160,119 @@ export const ServicesPage: React.FC = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        {loading ? (
-          <PageLoader />
-        ) : services.length === 0 ? (
-          <div className="p-12 text-center text-gray-400">
-            <TestTube className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p className="text-base font-medium text-gray-600">No services catalogued</p>
-            <p className="text-xs text-gray-400 mt-1">Hospital services will appear here once registered</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-600">
-              <thead className="bg-gray-50/75 border-b border-gray-100 text-xs uppercase font-semibold text-gray-500">
-                <tr>
-                  <th className="px-5 py-3.5">Code</th>
-                  <th className="px-5 py-3.5">Service Details</th>
-                  <th className="px-5 py-3.5">Category</th>
-                  <th className="px-5 py-3.5">Standard Rate</th>
-                  <th className="px-5 py-3.5 text-right">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {services.map((srv) => (
-                  <tr key={srv._id} className="hover:bg-gray-50/60 transition-colors">
-                    <td className="px-5 py-4 font-mono text-xs font-semibold text-gray-900">
+      {loading ? (
+        <PageLoader />
+      ) : services.length === 0 ? (
+        <div className="card p-16 text-center text-slate-400">
+          <TestTube className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+          <p className="text-base font-semibold text-slate-700">No services catalogued</p>
+          <p className="text-xs text-slate-400 mt-1">Hospital services will appear here once registered</p>
+        </div>
+      ) : (
+        <div className="table-container">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Service Code</th>
+                <th>Service Details</th>
+                <th>Category</th>
+                <th>Standard Rate</th>
+                <th className="text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {services.map((srv) => (
+                <tr key={srv._id} className="hover:bg-slate-50/70 transition-colors">
+                  <td>
+                    <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded border border-navy-100 bg-navy-50/80 text-navy-800 uppercase">
                       {srv.code}
-                    </td>
-                    <td className="px-5 py-4">
-                      <p className="font-medium text-gray-900">{srv.name}</p>
-                      {srv.description && (
-                        <p className="text-xs text-gray-400 mt-0.5">{srv.description}</p>
-                      )}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getCategoryBadge(srv.category)}`}>
-                        {srv.category}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 font-semibold text-gray-900">
-                      {formatCurrency(srv.price)}
-                    </td>
-                    <td className="px-5 py-4 text-right">
-                      <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Available
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <Pagination
-          currentPage={page}
-          totalPages={Math.ceil(total / limit) || 1}
-          total={total}
-          limit={limit}
-          onPageChange={setPage}
-        />
-      </div>
+                    </span>
+                  </td>
+                  <td>
+                    <p className="font-bold text-slate-900 text-sm">{srv.name}</p>
+                    {srv.description && (
+                      <p className="text-xs text-slate-500 mt-0.5">{srv.description}</p>
+                    )}
+                  </td>
+                  <td>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${getCategoryBadge(srv.category)}`}>
+                      {srv.category}
+                    </span>
+                  </td>
+                  <td className="font-bold text-slate-900 text-sm">
+                    {formatCurrency(srv.price)}
+                  </td>
+                  <td className="text-right">
+                    <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Active Tariff
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <Pagination
+            currentPage={page}
+            totalPages={Math.ceil(total / limit) || 1}
+            total={total}
+            limit={limit}
+            onPageChange={setPage}
+          />
+        </div>
+      )}
 
       {/* Modal: Add Service */}
       {createModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
-            <div className="px-6 py-4 bg-[#1e3a5f] text-white flex items-center justify-between">
-              <h2 className="text-base font-bold flex items-center gap-2">
-                <Activity className="w-5 h-5" /> Add Hospital Service / Lab Test
-              </h2>
-              <button onClick={() => setCreateModalOpen(false)} className="text-white/80 hover:text-white">✕</button>
+        <div className="modal-overlay">
+          <div className="modal-backdrop" onClick={() => setCreateModalOpen(false)} />
+          <div className="modal-content max-w-md p-0 overflow-hidden">
+            <div className="px-6 py-4 bg-navy-950 text-white flex items-center justify-between border-b border-navy-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                  <Activity className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-white">Add Hospital Service / Diagnostic</h2>
+                  <p className="text-xs text-slate-400">Register new tariff item into master catalog</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setCreateModalOpen(false)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-navy-800 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Service Code *</label>
+                <label className="form-label">Service Code *</label>
                 <input
                   type="text"
                   placeholder="e.g. SRV-LAB04"
                   {...register('code')}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 uppercase focus:outline-none focus:border-[#1e3a5f]"
+                  className="form-input uppercase font-mono text-xs"
                 />
-                {errors.code && <p className="text-xs text-red-500 mt-1">{errors.code.message}</p>}
+                {errors.code && <p className="form-error">{errors.code.message}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Service Name *</label>
+                <label className="form-label">Service / Procedure Name *</label>
                 <input
                   type="text"
                   placeholder="e.g. Thyroid Profile (T3, T4, TSH)"
                   {...register('name')}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-[#1e3a5f]"
+                  className="form-input text-xs"
                 />
-                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
+                {errors.name && <p className="form-error">{errors.name.message}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Category *</label>
+                  <label className="form-label">Category *</label>
                   <select
                     {...register('category')}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-[#1e3a5f]"
+                    className="form-select text-xs"
                   >
                     <option value="LABORATORY">Laboratory</option>
                     <option value="RADIOLOGY">Radiology</option>
@@ -266,39 +282,39 @@ export const ServicesPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Price (₹) *</label>
+                  <label className="form-label">Price (₹) *</label>
                   <input
                     type="number"
                     step="any"
                     {...register('price', { valueAsNumber: true })}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-[#1e3a5f]"
+                    className="form-input font-bold text-xs"
                   />
-                  {errors.price && <p className="text-xs text-red-500 mt-1">{errors.price.message}</p>}
+                  {errors.price && <p className="form-error">{errors.price.message}</p>}
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Clinical Description</label>
+                <label className="form-label">Clinical Description / Preparation</label>
                 <textarea
                   rows={2}
-                  placeholder="Brief clinical description..."
+                  placeholder="e.g. Fasting 8-10 hours required before sample collection..."
                   {...register('description')}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-[#1e3a5f]"
+                  className="form-input text-xs"
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-3">
+              <div className="pt-2 flex justify-end gap-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setCreateModalOpen(false)}
-                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+                  className="btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-lg bg-[#1e3a5f] hover:bg-[#162d4a] text-white font-medium text-sm transition-colors shadow-sm disabled:opacity-60"
+                  className="btn-primary"
                 >
                   {submitting ? 'Registering...' : 'Register Service'}
                 </button>
@@ -310,3 +326,4 @@ export const ServicesPage: React.FC = () => {
     </div>
   );
 };
+

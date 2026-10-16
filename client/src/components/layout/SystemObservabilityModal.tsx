@@ -72,7 +72,7 @@ export const SystemObservabilityBadge: React.FC = () => {
       {/* Live topbar widget badge */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 transition-all duration-200 shadow-sm group"
+        className="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 transition-all duration-150 shadow-xs group"
         title="Click to view full Database & System Observability Diagnostics"
       >
         <span className="pulse-dot">
@@ -85,11 +85,11 @@ export const SystemObservabilityBadge: React.FC = () => {
           ) : (
             <Database className="w-3.5 h-3.5 text-emerald-600" />
           )}
-          <span className="font-semibold">
+          <span>
             {isAtlas ? 'Atlas Cloud DB' : 'MongoDB'}: {isConnected ? 'Online' : 'Reconnecting'}
           </span>
           {latency !== null && (
-            <span className="text-[10px] text-emerald-600/80 font-mono bg-emerald-200/50 px-1.5 py-0.5 rounded">
+            <span className="text-[10px] text-emerald-700 font-mono bg-emerald-200/60 px-1.5 py-0.5 rounded font-semibold">
               {latency}ms
             </span>
           )}
@@ -100,9 +100,9 @@ export const SystemObservabilityBadge: React.FC = () => {
       {isOpen && (
         <div className="modal-overlay">
           <div className="modal-backdrop" onClick={() => setIsOpen(false)} />
-          <div className="modal-content max-w-3xl p-0 overflow-hidden rounded-2xl shadow-2xl border border-gray-100 z-50">
+          <div className="modal-content max-w-3xl p-0 overflow-hidden rounded-2xl shadow-modal border border-[#E3E9F0] z-50">
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#1e3a5f] via-[#1e4f8a] to-[#0d9488] p-6 text-white relative">
+            <div className="bg-gradient-to-r from-[#101B2D] via-[#17263D] to-[#0F9D91] p-6 text-white relative">
               <button
                 onClick={() => setIsOpen(false)}
                 className="absolute top-5 right-5 text-white/70 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
@@ -111,40 +111,40 @@ export const SystemObservabilityBadge: React.FC = () => {
               </button>
 
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
-                  <Activity className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center">
+                  <Activity className="w-5 h-5 text-[#19B8C9]" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">System & Database Observability Center</h3>
-                  <p className="text-xs text-teal-200">
+                  <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">System & Database Observability Center</h3>
+                  <p className="text-xs text-teal-200/90 mt-0.5">
                     Real-time verification of hospital infrastructure, clinical collections & security
                   </p>
                 </div>
               </div>
 
               {/* Primary status strip */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/15">
-                  <p className="text-[10px] uppercase tracking-wider text-teal-200 font-medium">Database State</p>
+                  <p className="text-[10px] uppercase tracking-wider text-teal-200 font-semibold">Database State</p>
                   <p className="text-base font-bold text-white flex items-center gap-1.5 mt-0.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                     {status?.database?.status || 'Active'}
                   </p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/15">
-                  <p className="text-[10px] uppercase tracking-wider text-teal-200 font-medium">Active Engine</p>
+                  <p className="text-[10px] uppercase tracking-wider text-teal-200 font-semibold">Active Engine</p>
                   <p className="text-xs font-bold text-white mt-1 truncate" title={status?.database?.provider}>
                     {status?.database?.provider || 'MongoDB Instance'}
                   </p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/15">
-                  <p className="text-[10px] uppercase tracking-wider text-teal-200 font-medium">Collections</p>
-                  <p className="text-base font-bold text-white mt-0.5">
+                  <p className="text-[10px] uppercase tracking-wider text-teal-200 font-semibold">Collections</p>
+                  <p className="text-base font-bold text-white mt-0.5 font-mono">
                     {status?.database?.collectionsCount || 11} / 11 Active
                   </p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/15">
-                  <p className="text-[10px] uppercase tracking-wider text-teal-200 font-medium">API Latency</p>
+                  <p className="text-[10px] uppercase tracking-wider text-teal-200 font-semibold">API Latency</p>
                   <p className="text-base font-bold text-white mt-0.5 font-mono">
                     {latency !== null ? `${latency} ms` : 'Measuring...'}
                   </p>

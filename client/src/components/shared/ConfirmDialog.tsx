@@ -1,5 +1,5 @@
-import React from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { AlertTriangle, AlertCircle, Info, X } from 'lucide-react';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -24,45 +24,72 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onCancel,
   isLoading = false,
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen && !isLoading) {
+        onCancel();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isLoading, onCancel]);
+
   if (!isOpen) return null;
 
-  const confirmColors = {
-    danger: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
-    warning: 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500',
-    info: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
+  const variantConfig = {
+    danger: {
+      bgIcon: 'bg-rose-50 text-rose-600 border border-rose-200',
+      icon: AlertTriangle,
+      btnClass: 'bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white focus:ring-rose-500',
+    },
+    warning: {
+      bgIcon: 'bg-amber-50 text-amber-600 border border-amber-200',
+      icon: AlertCircle,
+      btnClass: 'bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white focus:ring-amber-500',
+    },
+    info: {
+      bgIcon: 'bg-cyan-50 text-cyan-600 border border-cyan-200',
+      icon: Info,
+      btnClass: 'bg-[#101B2D] hover:bg-[#17263D] text-white focus:ring-[#19B8C9]',
+    },
   };
 
+  const { bgIcon, icon: IconComponent, btnClass } = variantConfig[variant];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-scale-in">
+    <div className="modal-overlay">
+      <div className="modal-backdrop" onClick={isLoading ? undefined : onCancel} />
+      <div className="modal-content max-w-md w-full p-6">
         <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
+          <div className={`flex-shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center ${bgIcon}`}>
+            <IconComponent className="w-5 h-5" />
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-            <p className="mt-1 text-sm text-gray-500">{message}</p>
+          <div className="flex-1 min-w-0 pt-0.5">
+            <h3 className="text-base font-bold text-[#172337] tracking-tight">{title}</h3>
+            <p className="mt-1.5 text-xs sm:text-sm text-[#65748B] leading-relaxed">{message}</p>
           </div>
-          <button
-            onClick={onCancel}
-            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="mt-6 flex gap-3 justify-end">
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="flex-shrink-0 text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="mt-6 flex gap-2.5 justify-end pt-4 border-t border-[#E3E9F0]">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="btn-secondary"
           >
             {cancelLabel}
           </button>
           <button
+            type="button"
             onClick={onConfirm}
             disabled={isLoading}
-            className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${confirmColors[variant]}`}
+            className={`btn ${btnClass}`}
           >
             {isLoading ? 'Processing...' : confirmLabel}
           </button>
@@ -71,3 +98,4 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     </div>
   );
 };
+

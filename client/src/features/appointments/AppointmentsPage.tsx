@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Plus, Filter, Edit2, X } from 'lucide-react';
+import { Plus, Filter, Edit2, X, Calendar, Clock, Stethoscope, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -28,6 +28,16 @@ const TIME_SLOTS = [
   '08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30',
   '12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30',
   '16:00','16:30','17:00','17:30',
+];
+
+const TODAY_STR = new Date().toISOString().split('T')[0];
+
+const STATUS_OPTIONS = [
+  { value: '', label: 'All Statuses' },
+  { value: 'SCHEDULED', label: 'Scheduled' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'CANCELLED', label: 'Cancelled' },
+  { value: 'NO_SHOW', label: 'No Show' },
 ];
 
 export const AppointmentsPage: React.FC = () => {
@@ -74,7 +84,7 @@ export const AppointmentsPage: React.FC = () => {
     setSubmitting(true);
     try {
       await appointmentsApi.create(data);
-      toast.success('Appointment scheduled');
+      toast.success('Appointment scheduled successfully');
       setShowModal(false);
       reset();
       fetchData();
@@ -100,7 +110,7 @@ export const AppointmentsPage: React.FC = () => {
     if (!confirmCancel) return;
     try {
       await appointmentsApi.cancel(confirmCancel._id);
-      toast.success('Appointment cancelled');
+      toast.success('Appointment cancelled successfully');
       setConfirmCancel(null);
       fetchData();
     } catch (err) {
@@ -110,37 +120,69 @@ export const AppointmentsPage: React.FC = () => {
 
   const canCreate = user?.role === 'ADMIN' || user?.role === 'RECEPTIONIST';
 
-  const STATUS_OPTIONS = ['SCHEDULED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'];
-
   return (
-    <div className="animate-fade-in">
-      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-6 animate-fade-in">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="page-title">Appointments</h1>
-          <p className="page-subtitle">Schedule and manage patient appointments</p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-navy-950 tracking-tight">Clinical Appointments</h1>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-800 border border-cyan-200">
+              {total} Booked
+            </span>
+          </div>
+          <p className="text-sm text-slate-500 mt-1">
+            Real-time outpatient scheduling, clinical consultations, and specialist calendar management
+          </p>
         </div>
         {canCreate && (
-          <button onClick={() => { reset(); setShowModal(true); }} className="btn-primary">
+          <button
+            onClick={() => { reset(); setShowModal(true); }}
+            className="btn-primary"
+          >
             <Plus className="w-4 h-4" /> Schedule Appointment
           </button>
         )}
       </div>
 
-      {/* Filters */}
-      <div className="card mb-6 p-4 flex flex-col sm:flex-row gap-3">
-        <div className="relative sm:w-48">
-          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <select
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            className="form-select pl-9"
-          >
-            <option value="">All Statuses</option>
-            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+      {/* Filter and Status Selector Bar */}
+      <div className="card p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+          {STATUS_OPTIONS.map((opt) => {
+            const isActive = statusFilter === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => { setStatusFilter(opt.value); setPage(1); }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  isActive
+                    ? 'bg-navy-900 text-white shadow-sm ring-1 ring-navy-900'
+                    : 'text-slate-600 hover:text-navy-900 hover:bg-slate-100'
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-48">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            <select
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+              className="form-select pl-9 py-1.5 text-xs"
+            >
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
+      {/* Table Section */}
       {loading ? (
         <PageLoader />
       ) : (
@@ -149,57 +191,90 @@ export const AppointmentsPage: React.FC = () => {
             <thead>
               <tr>
                 <th>Appointment ID</th>
-                <th>Patient</th>
-                <th>Doctor</th>
-                <th>Date & Time</th>
-                <th>Type</th>
+                <th>Patient Details</th>
+                <th>Assigned Doctor</th>
+                <th>Date & Schedule</th>
+                <th>Encounter Type</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th className="text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-slate-100">
               {appointments.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-400">No appointments found</td>
+                  <td colSpan={7} className="text-center py-16">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
+                      <Calendar className="w-6 h-6" />
+                    </div>
+                    <p className="text-sm font-semibold text-slate-700">No appointments found</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {statusFilter ? 'Try clearing your status filter to see other appointments' : 'Schedule a new appointment to populate this schedule'}
+                    </p>
+                  </td>
                 </tr>
               ) : (
                 appointments.map((apt) => {
                   const patient = typeof apt.patientId === 'object' ? apt.patientId as any : null;
                   const doctor = typeof apt.doctorId === 'object' ? apt.doctorId as any : null;
                   return (
-                    <tr key={apt._id}>
+                    <tr key={apt._id} className="hover:bg-slate-50/70 transition-colors">
                       <td>
-                        <span className="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded">
+                        <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded border border-navy-100 bg-navy-50/80 text-navy-800 tracking-wider">
                           {apt.appointmentId}
                         </span>
                       </td>
                       <td>
-                        <p className="font-medium text-gray-900">{patient?.name || '—'}</p>
-                        <p className="text-xs text-gray-400">{patient?.patientId}</p>
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-800 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                            {patient?.name?.[0]?.toUpperCase() || 'P'}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-900 text-sm leading-tight">{patient?.name || '—'}</p>
+                            <p className="text-[11px] text-slate-500 font-mono mt-0.5">{patient?.patientId || 'Unregistered'}</p>
+                          </div>
+                        </div>
                       </td>
-                      <td className="text-gray-700">{doctor?.name || '—'}</td>
                       <td>
-                        <p className="text-sm text-gray-900">{formatDate(apt.date)}</p>
-                        <p className="text-xs text-gray-400">{apt.timeSlot}</p>
+                        <div className="flex items-center gap-1.5 text-slate-800 text-sm font-medium">
+                          <Stethoscope className="w-3.5 h-3.5 text-teal-600 flex-shrink-0" />
+                          <span>{doctor?.name || '—'}</span>
+                        </div>
                       </td>
-                      <td><StatusBadge status={apt.type} /></td>
-                      <td><StatusBadge status={apt.status} /></td>
                       <td>
-                        <div className="flex items-center gap-1">
+                        <div className="space-y-0.5">
+                          <p className="text-xs font-medium text-slate-800 flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                            {formatDate(apt.date)}
+                          </p>
+                          <p className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                            <Clock className="w-3 h-3 text-cyan-600" />
+                            <span className="font-mono">{apt.timeSlot}</span>
+                          </p>
+                        </div>
+                      </td>
+                      <td>
+                        <StatusBadge status={apt.type} />
+                      </td>
+                      <td>
+                        <StatusBadge status={apt.status} showDot />
+                      </td>
+                      <td className="text-right">
+                        <div className="flex items-center justify-end gap-1.5">
                           {apt.status === 'SCHEDULED' && (
                             <>
                               <button
                                 onClick={() => setShowStatusModal(apt)}
-                                className="p-1.5 text-gray-400 hover:text-[#1e3a5f] hover:bg-[#1e3a5f]/10 rounded-lg transition-colors"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg text-navy-800 bg-navy-50 hover:bg-navy-100 border border-navy-100 transition-colors"
                                 title="Update Status"
                               >
-                                <Edit2 className="w-4 h-4" />
+                                <Edit2 className="w-3.5 h-3.5 text-cyan-700" />
+                                <span>Status</span>
                               </button>
                               {user?.role === 'ADMIN' && (
                                 <button
                                   onClick={() => setConfirmCancel(apt)}
-                                  className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                  title="Cancel"
+                                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                                  title="Cancel Appointment"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
@@ -214,7 +289,7 @@ export const AppointmentsPage: React.FC = () => {
               )}
             </tbody>
           </table>
-          <Pagination currentPage={page} totalPages={Math.ceil(total / limit)} total={total} limit={limit} onPageChange={setPage} />
+          <Pagination currentPage={page} totalPages={Math.ceil(total / limit) || 1} total={total} limit={limit} onPageChange={setPage} />
         </div>
       )}
 
@@ -223,45 +298,62 @@ export const AppointmentsPage: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-backdrop" onClick={() => setShowModal(false)} />
           <div className="modal-content max-w-lg">
-            <div className="card-header flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Schedule Appointment</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+            <div className="card-header flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-700">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-navy-950">Schedule Clinical Appointment</h2>
+                  <p className="text-xs text-slate-500">Book outpatient consultation or follow-up session</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
             </div>
-            <form onSubmit={handleSubmit(onSubmit)} className="card-body space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="card-body space-y-4 pt-4">
               <div>
-                <label className="form-label">Patient *</label>
+                <label className="form-label">Select Patient *</label>
                 <select {...register('patientId')} className="form-select">
-                  <option value="">Select patient...</option>
+                  <option value="">Choose patient...</option>
                   {patients.map((p: any) => (
                     <option key={p._id} value={p._id}>{p.name} ({p.patientId})</option>
                   ))}
                 </select>
                 {errors.patientId && <p className="form-error">{errors.patientId.message}</p>}
               </div>
-              <div>
-                <label className="form-label">Doctor *</label>
-                <select {...register('doctorId')} className="form-select">
-                  <option value="">Select doctor...</option>
-                  {doctors.map((d: any) => (
-                    <option key={d._id} value={d.userId._id}>{d.userId.name} — {d.specialization}</option>
-                  ))}
-                </select>
-                {errors.doctorId && <p className="form-error">{errors.doctorId.message}</p>}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="form-label">Doctor *</label>
+                  <select {...register('doctorId')} className="form-select">
+                    <option value="">Select doctor...</option>
+                    {doctors.map((d: any) => (
+                      <option key={d._id} value={d.userId._id}>{d.userId.name} — {d.specialization}</option>
+                    ))}
+                  </select>
+                  {errors.doctorId && <p className="form-error">{errors.doctorId.message}</p>}
+                </div>
+                <div>
+                  <label className="form-label">Department *</label>
+                  <select {...register('departmentId')} className="form-select">
+                    <option value="">Select department...</option>
+                    {doctors.map((d: any) => (
+                      <option key={d.departmentId._id} value={d.departmentId._id}>{d.departmentId.name}</option>
+                    ))}
+                  </select>
+                  {errors.departmentId && <p className="form-error">{errors.departmentId.message}</p>}
+                </div>
               </div>
-              <div>
-                <label className="form-label">Department *</label>
-                <select {...register('departmentId')} className="form-select">
-                  <option value="">Select department...</option>
-                  {doctors.map((d: any) => (
-                    <option key={d.departmentId._id} value={d.departmentId._id}>{d.departmentId.name}</option>
-                  ))}
-                </select>
-                {errors.departmentId && <p className="form-error">{errors.departmentId.message}</p>}
-              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="form-label">Date *</label>
-                  <input {...register('date')} type="date" className="form-input" min={new Date().toISOString().split('T')[0]} />
+                  <input {...register('date')} type="date" className="form-input" min={TODAY_STR} />
                   {errors.date && <p className="form-error">{errors.date.message}</p>}
                 </div>
                 <div>
@@ -273,22 +365,31 @@ export const AppointmentsPage: React.FC = () => {
                   {errors.timeSlot && <p className="form-error">{errors.timeSlot.message}</p>}
                 </div>
               </div>
+
               <div>
-                <label className="form-label">Type *</label>
+                <label className="form-label">Consultation Type *</label>
                 <select {...register('type')} className="form-select">
-                  <option value="CONSULTATION">Consultation</option>
-                  <option value="FOLLOW_UP">Follow-Up</option>
-                  <option value="EMERGENCY">Emergency</option>
+                  <option value="CONSULTATION">General Consultation</option>
+                  <option value="FOLLOW_UP">Follow-Up Encounter</option>
+                  <option value="EMERGENCY">Emergency Triage</option>
                 </select>
               </div>
+
               <div>
-                <label className="form-label">Notes</label>
-                <textarea {...register('notes')} className="form-input min-h-[70px] resize-none" placeholder="Any additional notes..." />
+                <label className="form-label">Clinical Notes / Reason for Visit</label>
+                <textarea
+                  {...register('notes')}
+                  className="form-input min-h-[75px] resize-none text-xs"
+                  placeholder="Reason for visit, observed symptoms, or special instructions..."
+                />
               </div>
-              <div className="flex gap-3 justify-end pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Cancel</button>
+
+              <div className="flex gap-3 justify-end pt-3 border-t border-slate-100">
+                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">
+                  Cancel
+                </button>
                 <button type="submit" disabled={submitting} className="btn-primary">
-                  {submitting ? 'Scheduling...' : 'Schedule'}
+                  {submitting ? 'Scheduling...' : 'Confirm Appointment'}
                 </button>
               </div>
             </form>
@@ -301,18 +402,35 @@ export const AppointmentsPage: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-backdrop" onClick={() => setShowStatusModal(null)} />
           <div className="modal-content max-w-sm">
-            <div className="card-header flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Update Status</h2>
-              <button onClick={() => setShowStatusModal(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+            <div className="card-header flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h2 className="text-sm font-bold text-navy-950">Update Appointment Status</h2>
+                <p className="text-xs text-slate-500 font-mono mt-0.5">{showStatusModal.appointmentId}</p>
+              </div>
+              <button
+                onClick={() => setShowStatusModal(null)}
+                className="w-6 h-6 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
             </div>
-            <div className="card-body space-y-2">
-              {['COMPLETED', 'NO_SHOW', 'CANCELLED'].map((s) => (
+            <div className="card-body p-4 space-y-2">
+              <p className="text-xs text-slate-500 mb-2">Select the operational outcome for this encounter:</p>
+              {[
+                { status: 'COMPLETED', label: 'Mark as Completed', desc: 'Encounter concluded by doctor', icon: CheckCircle2, color: 'hover:border-emerald-500 hover:bg-emerald-50/40 text-emerald-700' },
+                { status: 'NO_SHOW', label: 'Mark as No-Show', desc: 'Patient failed to appear', icon: AlertCircle, color: 'hover:border-amber-500 hover:bg-amber-50/40 text-amber-700' },
+                { status: 'CANCELLED', label: 'Cancel Encounter', desc: 'Appointment cancelled', icon: X, color: 'hover:border-red-500 hover:bg-red-50/40 text-red-700' },
+              ].map((opt) => (
                 <button
-                  key={s}
-                  onClick={() => updateStatus(showStatusModal, s)}
-                  className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-[#1e3a5f] hover:bg-[#1e3a5f]/5 transition-colors"
+                  key={opt.status}
+                  onClick={() => updateStatus(showStatusModal, opt.status)}
+                  className={`w-full text-left p-3 rounded-xl border border-slate-200 transition-all ${opt.color} group flex items-start gap-3`}
                 >
-                  <StatusBadge status={s} />
+                  <opt.icon className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs font-semibold text-slate-900 group-hover:text-inherit">{opt.label}</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">{opt.desc}</p>
+                  </div>
                 </button>
               ))}
             </div>
@@ -320,10 +438,11 @@ export const AppointmentsPage: React.FC = () => {
         </div>
       )}
 
+      {/* Cancel Confirmation Dialog */}
       <ConfirmDialog
         isOpen={!!confirmCancel}
         title="Cancel Appointment"
-        message={`Cancel appointment ${confirmCancel?.appointmentId}? This action cannot be undone.`}
+        message={`Are you sure you want to cancel appointment ${confirmCancel?.appointmentId}? This status change will be recorded in the patient encounter history.`}
         confirmLabel="Cancel Appointment"
         onConfirm={handleCancel}
         onCancel={() => setConfirmCancel(null)}
@@ -331,3 +450,4 @@ export const AppointmentsPage: React.FC = () => {
     </div>
   );
 };
+

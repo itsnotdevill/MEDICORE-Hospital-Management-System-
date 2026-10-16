@@ -41,35 +41,37 @@ export function calculateAge(dob: string): number {
 
 export function getRoleBadgeColor(role: UserRole): string {
   const colors: Record<UserRole, string> = {
-    ADMIN: 'bg-purple-100 text-purple-700',
-    RECEPTIONIST: 'bg-blue-100 text-blue-700',
-    DOCTOR: 'bg-teal-100 text-teal-700',
-    BILLING_STAFF: 'bg-amber-100 text-amber-700',
+    ADMIN: 'bg-purple-50 text-purple-700 border border-purple-200',
+    RECEPTIONIST: 'bg-blue-50 text-blue-700 border border-blue-200',
+    DOCTOR: 'bg-teal-50 text-teal-700 border border-teal-200',
+    BILLING_STAFF: 'bg-amber-50 text-amber-700 border border-amber-200',
   };
-  return colors[role] || 'bg-gray-100 text-gray-700';
+  return colors[role] || 'bg-slate-50 text-slate-700 border border-slate-200';
 }
 
 export function getRoleLabel(role: UserRole): string {
   const labels: Record<UserRole, string> = {
-    ADMIN: 'Admin',
+    ADMIN: 'Administrator',
     RECEPTIONIST: 'Receptionist',
-    DOCTOR: 'Doctor',
-    BILLING_STAFF: 'Billing Staff',
+    DOCTOR: 'Doctor / Physician',
+    BILLING_STAFF: 'Billing Officer',
   };
   return labels[role] || role;
 }
 
 export function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
-    SCHEDULED: 'bg-blue-100 text-blue-700',
-    COMPLETED: 'bg-green-100 text-green-700',
-    CANCELLED: 'bg-red-100 text-red-700',
-    NO_SHOW: 'bg-gray-100 text-gray-700',
-    PENDING: 'bg-amber-100 text-amber-700',
-    PARTIAL: 'bg-orange-100 text-orange-700',
-    PAID: 'bg-green-100 text-green-700',
+    SCHEDULED: 'bg-blue-50 text-blue-700 border border-blue-200',
+    COMPLETED: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    CANCELLED: 'bg-rose-50 text-rose-700 border border-rose-200',
+    NO_SHOW: 'bg-slate-100 text-slate-700 border border-slate-200',
+    PENDING: 'bg-amber-50 text-amber-700 border border-amber-200',
+    PARTIAL: 'bg-orange-50 text-orange-700 border border-orange-200',
+    PAID: 'bg-teal-50 text-teal-700 border border-teal-200',
+    ACTIVE: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    INACTIVE: 'bg-slate-100 text-slate-600 border border-slate-200',
   };
-  return colors[status] || 'bg-gray-100 text-gray-700';
+  return colors[status] || 'bg-slate-50 text-slate-700 border border-slate-200';
 }
 
 export function getInitials(name: string): string {

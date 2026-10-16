@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Plus, Search, Edit2, PowerOff, Filter } from 'lucide-react';
+import { Plus, Search, Edit2, PowerOff, Filter, Shield, Users as UsersIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -91,7 +91,7 @@ export const UsersPage: React.FC = () => {
     if (!confirmUser) return;
     try {
       await usersApi.deactivate(confirmUser._id);
-      toast.success('User deactivated');
+      toast.success('User account deactivated successfully');
       setConfirmUser(null);
       fetchUsers();
     } catch (err) {
@@ -102,37 +102,45 @@ export const UsersPage: React.FC = () => {
   const roles: UserRole[] = ['ADMIN', 'RECEPTIONIST', 'DOCTOR', 'BILLING_STAFF'];
 
   return (
-    <div className="animate-fade-in">
-      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-6 animate-fade-in">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="page-title">Users</h1>
-          <p className="page-subtitle">Manage staff accounts and permissions</p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-navy-950 tracking-tight">Staff Directory & RBAC Security</h1>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-navy-50 text-navy-800 border border-navy-200">
+              {total} Staff Accounts
+            </span>
+          </div>
+          <p className="text-sm text-slate-500 mt-1">
+            Manage hospital staff credentials, administrative access, role privileges, and account security
+          </p>
         </div>
         <button onClick={openCreate} className="btn-primary">
-          <Plus className="w-4 h-4" /> Add User
+          <Plus className="w-4 h-4" /> Add Staff Member
         </button>
       </div>
 
       {/* Filters */}
-      <div className="card mb-6 p-4 flex flex-col sm:flex-row gap-3">
+      <div className="card p-4 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder="Search staff by name or email address..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="form-input pl-9"
           />
         </div>
-        <div className="relative sm:w-48">
-          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <div className="relative sm:w-56">
+          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           <select
             value={roleFilter}
             onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-            className="form-select pl-9"
+            className="form-select pl-9 py-1.5 text-xs"
           >
-            <option value="">All Roles</option>
+            <option value="">All Hospital Roles</option>
             {roles.map((r) => (
               <option key={r} value={r}>{getRoleLabel(r)}</option>
             ))}
@@ -148,59 +156,63 @@ export const UsersPage: React.FC = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>User</th>
-                <th>Role</th>
-                <th>Phone</th>
-                <th>Status</th>
-                <th>Joined</th>
-                <th>Actions</th>
+                <th>Staff Member</th>
+                <th>Assigned Role</th>
+                <th>Contact Phone</th>
+                <th>Security Status</th>
+                <th>Joined Date</th>
+                <th className="text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-slate-100">
               {users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-gray-400">
-                    No users found
+                  <td colSpan={6} className="text-center py-16">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
+                      <UsersIcon className="w-6 h-6" />
+                    </div>
+                    <p className="text-sm font-semibold text-slate-700">No staff accounts found</p>
+                    <p className="text-xs text-slate-400 mt-1">Adjust your search or add a new staff member</p>
                   </td>
                 </tr>
               ) : (
-                users.map((user) => (
-                  <tr key={user._id}>
+                users.map((u) => (
+                  <tr key={u._id} className="hover:bg-slate-50/70 transition-colors">
                     <td>
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
-                          {getInitials(user.name)}
+                        <div className="w-9 h-9 rounded-xl bg-navy-950 border border-navy-800 flex items-center justify-center text-cyan-300 text-xs font-bold flex-shrink-0 shadow-xs">
+                          {getInitials(u.name)}
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{user.name}</p>
-                          <p className="text-xs text-gray-400">{user.email}</p>
+                          <p className="font-bold text-navy-950 text-sm leading-snug">{u.name}</p>
+                          <p className="text-xs text-slate-500 font-mono mt-0.5">{u.email}</p>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role as UserRole)}`}>
-                        {getRoleLabel(user.role as UserRole)}
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getRoleBadgeColor(u.role as UserRole)}`}>
+                        {getRoleLabel(u.role as UserRole)}
                       </span>
                     </td>
-                    <td className="text-gray-500">{user.phone || '—'}</td>
+                    <td className="text-xs text-slate-600 font-mono">{u.phone || '—'}</td>
                     <td>
-                      <StatusBadge status={user.isActive ? 'ACTIVE' : 'INACTIVE'} />
+                      <StatusBadge status={u.isActive ? 'ACTIVE' : 'INACTIVE'} showDot />
                     </td>
-                    <td className="text-gray-500">{formatDate(user.createdAt)}</td>
-                    <td>
-                      <div className="flex items-center gap-2">
+                    <td className="text-xs text-slate-500">{formatDate(u.createdAt)}</td>
+                    <td className="text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
-                          onClick={() => openEdit(user)}
-                          className="p-1.5 text-gray-400 hover:text-[#1e3a5f] hover:bg-[#1e3a5f]/10 rounded-lg transition-colors"
-                          title="Edit"
+                          onClick={() => openEdit(u)}
+                          className="p-1.5 text-slate-400 hover:text-navy-900 hover:bg-slate-100 rounded-lg transition-colors border border-transparent hover:border-slate-200"
+                          title="Edit User"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-4 h-4 text-cyan-700" />
                         </button>
-                        {user.isActive && (
+                        {u.isActive && (
                           <button
-                            onClick={() => setConfirmUser(user)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Deactivate"
+                            onClick={() => setConfirmUser(u)}
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                            title="Deactivate Account"
                           >
                             <PowerOff className="w-4 h-4" />
                           </button>
@@ -212,7 +224,7 @@ export const UsersPage: React.FC = () => {
               )}
             </tbody>
           </table>
-          <Pagination currentPage={page} totalPages={Math.ceil(total / limit)} total={total} limit={limit} onPageChange={setPage} />
+          <Pagination currentPage={page} totalPages={Math.ceil(total / limit) || 1} total={total} limit={limit} onPageChange={setPage} />
         </div>
       )}
 
@@ -220,43 +232,56 @@ export const UsersPage: React.FC = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-backdrop" onClick={() => setShowModal(false)} />
-          <div className="modal-content max-w-lg">
-            <div className="card-header flex items-center justify-between">
-              <h2 className="text-lg font-semibold">{editingUser ? 'Edit User' : 'Add New User'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+          <div className="modal-content max-w-lg p-0 overflow-hidden">
+            <div className="px-6 py-4 bg-navy-950 text-white flex items-center justify-between border-b border-navy-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-white">{editingUser ? 'Edit Staff Credentials' : 'Add Staff Member'}</h2>
+                  <p className="text-xs text-slate-400">Assign role access and identity credentials</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-navy-800 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
             </div>
-            <form onSubmit={handleSubmit(onSubmit)} className="card-body space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label className="form-label">Full Name *</label>
-                  <input {...register('name')} className="form-input" placeholder="Dr. John Doe" />
+                  <input {...register('name')} className="form-input" placeholder="e.g. Dr. John Doe" />
                   {errors.name && <p className="form-error">{errors.name.message}</p>}
                 </div>
                 <div className="col-span-2">
-                  <label className="form-label">Email *</label>
-                  <input {...register('email')} type="email" className="form-input" placeholder="user@medicore.dev" />
+                  <label className="form-label">Email Address *</label>
+                  <input {...register('email')} type="email" className="form-input" placeholder="user@medicore-hms.local" />
                   {errors.email && <p className="form-error">{errors.email.message}</p>}
                 </div>
                 <div>
-                  <label className="form-label">Role *</label>
+                  <label className="form-label">Hospital Role *</label>
                   <select {...register('role')} className="form-select">
                     {roles.map((r) => <option key={r} value={r}>{getRoleLabel(r)}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="form-label">Phone</label>
-                  <input {...register('phone')} className="form-input" placeholder="+91-9000000000" />
+                  <label className="form-label">Contact Phone</label>
+                  <input {...register('phone')} className="form-input font-mono" placeholder="+91 98000 00000" />
                 </div>
                 <div className="col-span-2">
-                  <label className="form-label">{editingUser ? 'New Password (leave blank to keep)' : 'Password *'}</label>
-                  <input {...register('password')} type="password" className="form-input" placeholder="Min. 8 chars with uppercase, number" />
+                  <label className="form-label">{editingUser ? 'New Password (leave blank to keep unchanged)' : 'Password *'}</label>
+                  <input {...register('password')} type="password" className="form-input" placeholder="Min 8 chars, 1 uppercase, 1 number" />
                   {errors.password && <p className="form-error">{errors.password.message}</p>}
                 </div>
               </div>
-              <div className="flex gap-3 pt-2 justify-end">
+              <div className="flex gap-3 pt-3 justify-end border-t border-slate-100">
                 <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Cancel</button>
                 <button type="submit" disabled={submitting} className="btn-primary">
-                  {submitting ? 'Saving...' : editingUser ? 'Update User' : 'Create User'}
+                  {submitting ? 'Saving...' : editingUser ? 'Update Staff Member' : 'Create Staff Member'}
                 </button>
               </div>
             </form>
@@ -264,14 +289,16 @@ export const UsersPage: React.FC = () => {
         </div>
       )}
 
+      {/* Deactivate User Confirmation */}
       <ConfirmDialog
         isOpen={!!confirmUser}
-        title="Deactivate User"
-        message={`Are you sure you want to deactivate ${confirmUser?.name}? They will no longer be able to log in.`}
-        confirmLabel="Deactivate"
+        title="Deactivate Staff Account"
+        message={`Are you sure you want to deactivate ${confirmUser?.name}? They will immediately lose access to MediCore HMS.`}
+        confirmLabel="Deactivate Account"
         onConfirm={handleDeactivate}
         onCancel={() => setConfirmUser(null)}
       />
     </div>
   );
 };
+

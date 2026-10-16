@@ -201,36 +201,36 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50 overflow-hidden">
+    <div className="min-h-screen flex bg-[#F6F8FB] overflow-hidden">
       {/* ── Left Hero Panel (Rich Healthcare Branding & Animation) ── */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#0f172a] via-[#1e3a5f] to-[#0d9488] relative flex-col justify-between p-12 overflow-hidden shadow-2xl">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#0B1320] via-[#101B2D] to-[#0F9D91] relative flex-col justify-between p-12 overflow-hidden shadow-2xl">
         {/* Ambient floating glow circles */}
-        <div className="absolute top-10 left-10 w-72 h-72 bg-teal-500/20 rounded-full blur-3xl animate-pulse-glow pointer-events-none" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse-glow pointer-events-none" />
+        <div className="absolute top-10 left-10 w-72 h-72 bg-[#19B8C9]/15 rounded-full blur-3xl animate-pulse-glow pointer-events-none" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-[#0F9D91]/20 rounded-full blur-3xl animate-pulse-glow pointer-events-none" />
 
         {/* Floating animated medical icons */}
-        <div className="absolute top-24 right-20 text-white/10 animate-float pointer-events-none">
+        <div className="absolute top-24 right-20 text-white/5 animate-float pointer-events-none">
           <Stethoscope className="w-24 h-24" />
         </div>
-        <div className="absolute bottom-32 left-16 text-white/10 animate-float-reverse pointer-events-none">
+        <div className="absolute bottom-32 left-16 text-white/5 animate-float-reverse pointer-events-none">
           <Activity className="w-20 h-20" />
         </div>
 
         {/* Brand header */}
         <div className="relative z-10 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-400 to-cyan-300 p-0.5 shadow-lg">
-            <div className="w-full h-full bg-[#1e3a5f] rounded-[14px] flex items-center justify-center">
-              <Heart className="w-6 h-6 text-teal-300" />
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#19B8C9] to-[#0F9D91] p-0.5 shadow-cyan-glow">
+            <div className="w-full h-full bg-[#101B2D] rounded-[14px] flex items-center justify-center">
+              <Heart className="w-6 h-6 text-[#19B8C9]" />
             </div>
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-black text-white tracking-tight">MediCore HMS</h1>
-              <span className="text-[10px] font-bold bg-teal-400/20 text-teal-300 px-2 py-0.5 rounded-full border border-teal-400/30">
+              <span className="text-[10px] font-bold bg-[#19B8C9]/20 text-[#83E2EB] px-2 py-0.5 rounded-full border border-[#19B8C9]/30">
                 v2.5 Enterprise
               </span>
             </div>
-            <p className="text-teal-200/70 text-xs uppercase tracking-widest font-semibold mt-0.5">
+            <p className="text-teal-200/80 text-xs uppercase tracking-widest font-semibold mt-0.5">
               Next-Gen Hospital Management Platform
             </p>
           </div>
@@ -304,16 +304,16 @@ export const LoginPage: React.FC = () => {
           </div>
 
           {/* Main Card */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 sm:p-10 transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-card border border-[#E3E9F0] p-6 sm:p-10 transition-all duration-300">
             {/* Tab switch header */}
-            <div className="flex p-1 bg-gray-100 rounded-xl mb-8 relative">
+            <div className="flex p-1 bg-slate-100/80 rounded-xl mb-7 relative border border-slate-200/50">
               <button
                 type="button"
                 onClick={() => setActiveTab('login')}
-                className={`flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 ${
+                className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all duration-150 flex items-center justify-center gap-2 ${
                   activeTab === 'login'
-                    ? 'bg-white text-[#1e3a5f] shadow-sm'
-                    : 'text-gray-500 hover:text-gray-900'
+                    ? 'bg-white text-[#101B2D] shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 <Lock className="w-4 h-4" />
@@ -322,10 +322,10 @@ export const LoginPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('register')}
-                className={`flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 ${
+                className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all duration-150 flex items-center justify-center gap-2 ${
                   activeTab === 'register'
-                    ? 'bg-white text-teal-700 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-900'
+                    ? 'bg-white text-[#0F9D91] shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 <UserCheck className="w-4 h-4" />
@@ -337,9 +337,9 @@ export const LoginPage: React.FC = () => {
             {activeTab === 'login' && (
               <div>
                 <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Portal Authentication</h2>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Sign in with your verified hospital credentials or select a viva demo role
+                  <h2 className="text-xl sm:text-2xl font-bold text-[#172337] tracking-tight">Portal Authentication</h2>
+                  <p className="text-xs sm:text-sm text-[#65748B] mt-1">
+                    Sign in with your verified hospital credentials or select an interactive viva role
                   </p>
                 </div>
 
@@ -347,10 +347,10 @@ export const LoginPage: React.FC = () => {
                   <div>
                     <label className="form-label flex items-center justify-between">
                       <span>Hospital Email</span>
-                      <span className="text-[11px] text-gray-400 font-normal">Registered ID</span>
+                      <span className="text-[10px] text-slate-400 font-normal lowercase tracking-normal">e.g. staff@medicore.dev</span>
                     </label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
                         {...loginRegister('email')}
                         type="email"
@@ -360,7 +360,7 @@ export const LoginPage: React.FC = () => {
                       />
                     </div>
                     {loginErrors.email && (
-                      <p className="form-error flex items-center gap-1 text-xs text-red-600 mt-1">
+                      <p className="form-error">
                         <AlertCircle className="w-3.5 h-3.5" />
                         {loginErrors.email.message}
                       </p>
@@ -370,10 +370,10 @@ export const LoginPage: React.FC = () => {
                   <div>
                     <label className="form-label flex items-center justify-between">
                       <span>Security Password</span>
-                      <span className="text-[11px] text-teal-600 font-medium">Encrypted (bcrypt)</span>
+                      <span className="text-[10px] text-[#0F9D91] font-medium lowercase tracking-normal">Encrypted (bcrypt)</span>
                     </label>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
                         {...loginRegister('password')}
                         type={showPassword ? 'text' : 'password'}
@@ -384,13 +384,14 @@ export const LoginPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                     {loginErrors.password && (
-                      <p className="form-error flex items-center gap-1 text-xs text-red-600 mt-1">
+                      <p className="form-error">
                         <AlertCircle className="w-3.5 h-3.5" />
                         {loginErrors.password.message}
                       </p>
@@ -399,11 +400,11 @@ export const LoginPage: React.FC = () => {
 
                   {/* Role preview info if clicked */}
                   {selectedRolePreview && (
-                    <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-800 flex items-start gap-2.5 animate-fadeIn">
-                      <CheckCircle className="w-4 h-4 text-teal-600 flex-shrink-0 mt-0.5" />
+                    <div className="p-3 rounded-xl bg-cyan-50/80 border border-cyan-200 text-xs text-cyan-900 flex items-start gap-2.5 animate-fade-in">
+                      <CheckCircle className="w-4 h-4 text-[#0F9D91] flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="font-bold text-teal-900">{selectedRolePreview.role} Mode Loaded</p>
-                        <p className="text-[11px] text-teal-700 leading-snug mt-0.5">{selectedRolePreview.desc}</p>
+                        <p className="font-bold text-[#101B2D]">{selectedRolePreview.role} Mode Loaded</p>
+                        <p className="text-[11px] text-cyan-800 leading-snug mt-0.5">{selectedRolePreview.desc}</p>
                       </div>
                     </div>
                   )}
@@ -411,16 +412,16 @@ export const LoginPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isLoginSubmitting}
-                    className="btn-primary w-full py-3 text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 mt-2"
+                    className="btn-primary w-full py-2.5 text-xs sm:text-sm font-semibold shadow-xs flex items-center justify-center gap-2 mt-2"
                   >
                     {isLoginSubmitting ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin text-[#19B8C9]" />
                         Verifying Credentials...
                       </>
                     ) : (
                       <>
-                        <Lock className="w-4 h-4" />
+                        <Lock className="w-4 h-4 text-[#19B8C9]" />
                         Authorize & Enter Platform
                       </>
                     )}
@@ -428,12 +429,12 @@ export const LoginPage: React.FC = () => {
                 </form>
 
                 {/* Viva Demo Role Quick-Fill Buttons */}
-                <div className="mt-8 pt-6 border-t border-gray-100">
+                <div className="mt-8 pt-6 border-t border-[#E3E9F0]">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                       Interactive Viva Demo Roles
                     </span>
-                    <span className="text-[10px] bg-teal-50 text-teal-700 font-semibold px-2 py-0.5 rounded-full border border-teal-200">
+                    <span className="text-[10px] bg-cyan-50 text-[#0F9D91] font-semibold px-2 py-0.5 rounded-full border border-cyan-200">
                       1-Click Auto-Fill
                     </span>
                   </div>
@@ -447,26 +448,26 @@ export const LoginPage: React.FC = () => {
                           key={acc.role}
                           type="button"
                           onClick={() => fillDemo(acc)}
-                          className={`text-left p-3 rounded-xl border transition-all duration-200 group relative ${
+                          className={`text-left p-3 rounded-xl border transition-all duration-150 group relative ${
                             isSelected
-                              ? 'border-[#1e3a5f] bg-[#1e3a5f]/5 shadow-sm'
-                              : 'border-gray-200 hover:border-[#1e3a5f] hover:bg-gray-50'
+                              ? 'border-[#19B8C9] bg-cyan-50/60 shadow-xs ring-1 ring-[#19B8C9]'
+                              : 'border-[#E3E9F0] hover:border-[#101B2D] hover:bg-[#F8FAFC]'
                           }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            <div className="w-6 h-6 rounded-lg bg-gray-100 group-hover:bg-[#1e3a5f] flex items-center justify-center transition-colors">
-                              <Icon className="w-3.5 h-3.5 text-gray-600 group-hover:text-white transition-colors" />
+                            <div className="w-6 h-6 rounded-lg bg-slate-100 group-hover:bg-[#101B2D] flex items-center justify-center transition-colors">
+                              <Icon className="w-3.5 h-3.5 text-slate-600 group-hover:text-[#19B8C9] transition-colors" />
                             </div>
-                            <span className="text-xs font-bold text-gray-800 group-hover:text-[#1e3a5f]">
+                            <span className="text-xs font-bold text-[#172337] group-hover:text-[#101B2D]">
                               {acc.role}
                             </span>
                           </div>
-                          <p className="text-[10px] text-gray-400 font-mono truncate">{acc.email}</p>
+                          <p className="text-[10px] text-slate-400 font-mono truncate">{acc.email}</p>
                         </button>
                       );
                     })}
                   </div>
-                  <p className="text-center text-[11px] text-gray-400 mt-3">
+                  <p className="text-center text-[11px] text-slate-400 mt-3">
                     Click any role to load authentic doctor, reception, admin, or billing credentials
                   </p>
                 </div>
