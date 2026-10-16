@@ -6,10 +6,14 @@ export interface IUser extends Document {
   _id: Types.ObjectId;
   name: string;
   email: string;
-  passwordHash: string;
+  passwordHash?: string;
   role: UserRole;
   phone?: string;
   avatar?: string;
+  googleId?: string;
+  googleEmail?: string;
+  googleAvatar?: string;
+  authProvider: 'LOCAL' | 'GOOGLE' | 'BOTH';
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -26,7 +30,7 @@ const userSchema = new Schema<IUser>(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Invalid email format'],
     },
-    passwordHash: { type: String, required: true, select: false },
+    passwordHash: { type: String, select: false },
     role: {
       type: String,
       enum: ['ADMIN', 'RECEPTIONIST', 'DOCTOR', 'BILLING_STAFF'],
@@ -34,6 +38,14 @@ const userSchema = new Schema<IUser>(
     },
     phone: { type: String, trim: true },
     avatar: { type: String },
+    googleId: { type: String, sparse: true, index: true },
+    googleEmail: { type: String, lowercase: true, trim: true },
+    googleAvatar: { type: String },
+    authProvider: {
+      type: String,
+      enum: ['LOCAL', 'GOOGLE', 'BOTH'],
+      default: 'LOCAL',
+    },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }

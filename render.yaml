@@ -1,0 +1,52 @@
+# Render Blueprint for MediCore Hospital Management System (HMS)
+# Single Unified Web Service Architecture (Express API + React Frontend)
+
+services:
+  - type: web
+    name: medicore-hms
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm run render-build
+    startCommand: node server/dist/index.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: 10000
+
+      # MongoDB Atlas connection string (provided securely via Render dashboard)
+      - key: MONGODB_URI
+        sync: false
+
+      # 64-character cryptographic JWT signing secret
+      - key: JWT_SECRET
+        generateValue: true
+
+      - key: JWT_EXPIRES_IN
+        value: 15m
+
+      # Deployed Render Web Service Public URL (e.g., https://medicore-hms.onrender.com)
+      - key: SERVER_PUBLIC_URL
+        sync: false
+
+      # Client origin for CORS and cookie origin (matches SERVER_PUBLIC_URL in unified deployment)
+      - key: CLIENT_ORIGIN
+        sync: false
+
+      # Google Cloud OAuth 2.0 Client ID (from Google Cloud Console)
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+
+      # Google Cloud OAuth 2.0 Client Secret (from Google Cloud Console)
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+
+      # Exact OAuth Callback URI configured in Google Cloud Console
+      # (e.g., https://medicore-hms.onrender.com/api/auth/google/callback)
+      - key: GOOGLE_CALLBACK_URL
+        sync: false

@@ -18,6 +18,18 @@ export const authApi = {
   changePassword: (currentPassword: string, newPassword: string) =>
     api.put<ApiResponse<null>>('/auth/change-password', { currentPassword, newPassword }),
 
+  getGoogleConfig: () =>
+    api.get<ApiResponse<{ enabled: boolean; clientId: string | null }>>('/auth/google/config'),
+
+  linkGoogle: (data: { linkingToken: string; password: string }) =>
+    api.post<ApiResponse<User>>('/auth/google/link', data),
+
+  unlinkGoogle: () =>
+    api.post<ApiResponse<User>>('/auth/google/unlink'),
+
+  verifyGoogleCredential: (credential: string) =>
+    api.post<ApiResponse<any>>('/auth/google/verify-credential', { credential }),
+
   getHealth: () => api.get('/health'),
   getSystemStatus: () => api.get('/system/status'),
 };

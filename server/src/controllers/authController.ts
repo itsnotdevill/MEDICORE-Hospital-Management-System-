@@ -11,7 +11,7 @@ import { buildSuccessResponse, createAuditLog } from '../utils/helpers';
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: config.isProduction,
-  sameSite: 'strict' as const,
+  sameSite: 'lax' as const,
   maxAge: 15 * 60 * 1000, // 15 minutes
 };
 
@@ -19,7 +19,7 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
   const { email, password } = validate(loginSchema)(req.body);
 
   const user = await User.findOne({ email }).select('+passwordHash');
-  if (!user || !user.isActive) {
+  if (!user || !user.isActive || !user.passwordHash) {
     return next(new AppError('Invalid email or password', 401));
   }
 
@@ -74,7 +74,12 @@ export async function logout(_req: Request, res: Response): Promise<void> {
   res.clearCookie('token', {
     httpOnly: true,
     secure: config.isProduction,
-    sameSite: 'strict',
+    sameSite: 'lax',
+  });
+  res.clearCookie('oauth_state', {
+    httpOnly: true,
+    secure: config.isProduction,
+    sameSite: 'lax',
   });
   res.json(buildSuccessResponse(null, 'Logged out successfully'));
 }
@@ -109,6 +114,9 @@ export async function changePassword(
 
   const user = await User.findById(req.user!._id).select('+passwordHash');
   if (!user) return next(new AppError('User not found', 404));
+  if (!user.passwordHash) {
+    return next(new AppError('This account has no security password set. Please use Google Sign-In or contact your administrator.', 400));
+  }
 
   const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
   if (!isValid) return next(new AppError('Current password is incorrect', 400));

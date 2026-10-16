@@ -13,7 +13,7 @@ const schema = z.object({
   name: z.string().min(2, 'Name required'),
   description: z.string().optional(),
 });
-type FormData = z.infer<typeof schema>;
+type DepartmentFormData = z.infer<typeof schema>;
 
 interface Department {
   _id: string;
@@ -31,7 +31,7 @@ export const DepartmentsPage: React.FC = () => {
   const [confirmDel, setConfirmDel] = useState<Department | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<DepartmentFormData>({
     resolver: zodResolver(schema),
   });
 
@@ -61,14 +61,17 @@ export const DepartmentsPage: React.FC = () => {
     setShowModal(true);
   };
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: DepartmentFormData) => {
     setSubmitting(true);
     try {
       if (editing) {
         await departmentsApi.update(editing._id, data);
         toast.success('Department updated successfully');
       } else {
-        await departmentsApi.create(data);
+        await departmentsApi.create({
+          name: data.name,
+          description: data.description,
+        });
         toast.success('Department created successfully');
       }
       setShowModal(false);

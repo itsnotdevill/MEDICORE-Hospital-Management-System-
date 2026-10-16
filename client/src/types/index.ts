@@ -7,6 +7,10 @@ export interface User {
   role: UserRole;
   phone?: string;
   avatar?: string;
+  googleId?: string;
+  googleEmail?: string;
+  googleAvatar?: string;
+  authProvider?: 'LOCAL' | 'GOOGLE' | 'BOTH';
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

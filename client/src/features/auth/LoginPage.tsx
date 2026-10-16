@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -122,8 +122,115 @@ export const LoginPage: React.FC = () => {
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [selectedRolePreview, setSelectedRolePreview] = useState<DemoAccount | null>(null);
 
+  // Google OAuth state
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [oauthPrompt, setOauthPrompt] = useState<{
+    type: 'link_required' | 'unauthorized' | 'deactivated' | 'unconfigured' | 'error';
+    email?: string;
+    name?: string;
+    linkingToken?: string;
+    message?: string;
+  } | null>(null);
+  const [linkPassword, setLinkPassword] = useState('');
+  const [showLinkPassword, setShowLinkPassword] = useState(false);
+  const [isLinkingSubmitting, setIsLinkingSubmitting] = useState(false);
+
   const { setUser } = useAuthStore();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Handle incoming OAuth redirect state
+  useEffect(() => {
+    const oauth = searchParams.get('oauth');
+    if (!oauth) return;
+
+    if (oauth === 'success') {
+      toast.success('Signed in via Google successfully!');
+      authApi
+        .getMe()
+        .then((res) => {
+          setUser(res.data.data);
+          const role = res.data.data.role;
+          if (role === 'DOCTOR') navigate('/appointments');
+          else if (role === 'RECEPTIONIST') navigate('/patients');
+          else if (role === 'BILLING_STAFF') navigate('/invoices');
+          else navigate('/dashboard');
+        })
+        .catch(() => {
+          toast.error('Failed to retrieve user session');
+        });
+      setSearchParams({});
+    } else if (oauth === 'link_required') {
+      setOauthPrompt({
+        type: 'link_required',
+        email: searchParams.get('email') || '',
+        name: searchParams.get('name') || '',
+        linkingToken: searchParams.get('token') || '',
+      });
+      setSearchParams({});
+    } else if (oauth === 'unauthorized') {
+      setOauthPrompt({
+        type: 'unauthorized',
+        email: searchParams.get('email') || '',
+      });
+      setSearchParams({});
+    } else if (oauth === 'deactivated') {
+      setOauthPrompt({
+        type: 'deactivated',
+        email: searchParams.get('email') || '',
+      });
+      setSearchParams({});
+    } else if (oauth === 'unconfigured') {
+      setOauthPrompt({
+        type: 'unconfigured',
+      });
+      setSearchParams({});
+    } else if (oauth === 'cancelled') {
+      toast('Google authentication was cancelled', { icon: 'ℹ️' });
+      setSearchParams({});
+    } else if (oauth === 'error') {
+      setOauthPrompt({
+        type: 'error',
+        message: searchParams.get('message') || 'Google authentication failed',
+      });
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams, setUser, navigate]);
+
+  const handleGoogleSignIn = () => {
+    setIsGoogleLoading(true);
+    // Direct top-level browser redirect to backend OAuth initiation endpoint
+    window.location.href = '/api/auth/google';
+  };
+
+  const handleLinkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!oauthPrompt?.linkingToken || !linkPassword) {
+      toast.error('Please enter your hospital security password');
+      return;
+    }
+
+    setIsLinkingSubmitting(true);
+    try {
+      const res = await authApi.linkGoogle({
+        linkingToken: oauthPrompt.linkingToken,
+        password: linkPassword,
+      });
+      setUser(res.data.data);
+      toast.success('Google account securely linked! Welcome to MediCore HMS.');
+      setOauthPrompt(null);
+      setLinkPassword('');
+      const role = res.data.data.role;
+      if (role === 'DOCTOR') navigate('/appointments');
+      else if (role === 'RECEPTIONIST') navigate('/patients');
+      else if (role === 'BILLING_STAFF') navigate('/invoices');
+      else navigate('/dashboard');
+    } catch (err) {
+      toast.error(extractError(err));
+    } finally {
+      setIsLinkingSubmitting(false);
+    }
+  };
 
   // Login form
   const {
@@ -428,6 +535,53 @@ export const LoginPage: React.FC = () => {
                   </button>
                 </form>
 
+                {/* ── Divider ── */}
+                <div className="relative my-5">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-[#F6F8FB] lg:bg-white px-3 text-slate-400 font-semibold tracking-wider text-[10px]">
+                      or authenticate with
+                    </span>
+                  </div>
+                </div>
+
+                {/* ── Google Sign-In Button ── */}
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={isGoogleLoading}
+                  className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-semibold text-xs sm:text-sm rounded-xl border border-slate-200/90 shadow-xs hover:shadow-clinical-sm transition-all duration-150 flex items-center justify-center gap-3 group relative cursor-pointer"
+                >
+                  {isGoogleLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-[#0F9D91]" />
+                  ) : (
+                    <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+                      <path
+                        fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                      />
+                    </svg>
+                  )}
+                  <span>Continue with Google</span>
+                  <span className="text-[10px] text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ml-auto">
+                    OAuth 2.0
+                  </span>
+                </button>
+
                 {/* Viva Demo Role Quick-Fill Buttons */}
                 <div className="mt-8 pt-6 border-t border-[#E3E9F0]">
                   <div className="flex items-center justify-between mb-3">
@@ -669,6 +823,208 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ── Link Hospital Account Modal ── */}
+      {oauthPrompt?.type === 'link_required' && (
+        <div className="modal-overlay">
+          <div className="modal-backdrop" onClick={() => setOauthPrompt(null)} />
+          <div className="modal-content max-w-md p-0 overflow-hidden shadow-2xl animate-scale-in">
+            <div className="px-6 py-4 bg-navy-950 text-white flex items-center justify-between border-b border-navy-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-teal-500/20 border border-teal-500/30 flex items-center justify-center text-teal-400">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-white">Link Google Identity</h2>
+                  <p className="text-xs text-slate-400">Hospital Staff Account Verification</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOauthPrompt(null)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-navy-800 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleLinkSubmit} className="p-6 space-y-4 bg-white">
+              <div className="p-3.5 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-900 flex items-start gap-3">
+                <CheckCircle className="w-4 h-4 text-teal-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-teal-950">Verified Staff Account Found</p>
+                  <p className="text-[11px] text-teal-800 mt-0.5">
+                    An active hospital profile exists for <span className="font-semibold text-teal-950">{oauthPrompt.email}</span> ({oauthPrompt.name || 'Hospital Staff'}).
+                  </p>
+                  <p className="text-[11px] text-teal-700 mt-1">
+                    To prevent unauthorized account hijacking, confirm your hospital password once to establish the secure Google identity link.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="form-label flex items-center justify-between">
+                  <span>Hospital Security Password</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Existing password</span>
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type={showLinkPassword ? 'text' : 'password'}
+                    value={linkPassword}
+                    onChange={(e) => setLinkPassword(e.target.value)}
+                    placeholder="Enter your security password"
+                    className="form-input pl-10 pr-10 text-xs"
+                    autoFocus
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLinkPassword(!showLinkPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showLinkPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setOauthPrompt(null)}
+                  className="btn-secondary text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLinkingSubmitting}
+                  className="btn-primary text-xs flex items-center gap-2"
+                >
+                  {isLinkingSubmitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Verifying & Linking...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="w-3.5 h-3.5" />
+                      Verify & Link Google
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Unauthorized Google User Alert Modal ── */}
+      {oauthPrompt?.type === 'unauthorized' && (
+        <div className="modal-overlay">
+          <div className="modal-backdrop" onClick={() => setOauthPrompt(null)} />
+          <div className="modal-content max-w-md p-0 overflow-hidden shadow-2xl animate-scale-in">
+            <div className="px-6 py-4 bg-red-950 text-white flex items-center justify-between border-b border-red-900">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-400">
+                  <AlertCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-white">Access Denied: Unlisted Account</h2>
+                  <p className="text-xs text-red-200/80">Hospital Staff Authorization Required</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOauthPrompt(null)}
+                className="w-7 h-7 rounded-lg text-red-300 hover:text-white hover:bg-red-900 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 bg-white text-xs">
+              <p className="text-slate-700 leading-relaxed">
+                The Google account <strong className="text-navy-950 font-bold">{oauthPrompt.email}</strong> is not registered in the MediCore Hospital Staff Directory.
+              </p>
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 space-y-1">
+                <p className="font-bold flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-amber-600" />
+                  Hospital Security Policy
+                </p>
+                <p className="text-[11px] text-amber-800 leading-normal">
+                  Privileged roles (Doctor, Receptionist, Billing, Admin) cannot be created automatically via Google sign-in. Please contact your Hospital System Administrator to provision your staff credentials.
+                </p>
+              </div>
+
+              <div className="flex justify-end pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setOauthPrompt(null)}
+                  className="btn-primary text-xs"
+                >
+                  Understood, Return to Login
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Other OAuth Notifications Modal ── */}
+      {(oauthPrompt?.type === 'deactivated' || oauthPrompt?.type === 'unconfigured' || oauthPrompt?.type === 'error') && (
+        <div className="modal-overlay">
+          <div className="modal-backdrop" onClick={() => setOauthPrompt(null)} />
+          <div className="modal-content max-w-md p-0 overflow-hidden shadow-2xl animate-scale-in">
+            <div className="px-6 py-4 bg-navy-950 text-white flex items-center justify-between border-b border-navy-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                  <AlertCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-white">Authentication Notice</h2>
+                  <p className="text-xs text-slate-400">MediCore Security Service</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOauthPrompt(null)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-navy-800 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 bg-white text-xs">
+              {oauthPrompt.type === 'deactivated' && (
+                <p className="text-slate-700 leading-relaxed">
+                  The staff account associated with <strong className="text-navy-950 font-bold">{oauthPrompt.email}</strong> has been deactivated by hospital administration.
+                </p>
+              )}
+              {oauthPrompt.type === 'unconfigured' && (
+                <p className="text-slate-700 leading-relaxed">
+                  Google OAuth has not been configured on this MediCore HMS instance. Please sign in using your standard hospital email and password.
+                </p>
+              )}
+              {oauthPrompt.type === 'error' && (
+                <p className="text-red-600 leading-relaxed">
+                  {oauthPrompt.message || 'An error occurred during Google authentication. Please try again.'}
+                </p>
+              )}
+
+              <div className="flex justify-end pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setOauthPrompt(null)}
+                  className="btn-primary text-xs"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

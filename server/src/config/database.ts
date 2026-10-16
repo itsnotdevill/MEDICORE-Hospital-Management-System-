@@ -14,19 +14,22 @@ export async function connectDB(): Promise<void> {
   // Strip placeholder angle brackets if entered literally: :<password> -> :password
   primaryUri = primaryUri.replace(/:<([^>]+)>/, ':$1');
 
+  const sanitizedUri = primaryUri.replace(/:([^@:]+)@/, ':****@');
   const fallbackUri = 'mongodb://127.0.0.1:27017/medicore_db';
 
   mongoose.set('strictQuery', true);
 
   try {
     const isAtlas = primaryUri.includes('mongodb+srv');
-    console.log(`Connecting to MongoDB (${isAtlas ? 'MongoDB Atlas Cluster' : 'Local MongoDB'})...`);
-    await mongoose.connect(primaryUri, { serverSelectionTimeoutMS: 5000 });
+    console.log(`📡 Connecting to MongoDB (${isAtlas ? 'MongoDB Atlas Cloud Cluster' : 'Local MongoDB'})...`);
+    await mongoose.connect(primaryUri, { serverSelectionTimeoutMS: 8000 });
     console.log(`✅ MongoDB connected successfully to: ${mongoose.connection.host}`);
   } catch (err: any) {
-    console.warn(`⚠️ Primary MongoDB connection failed (${err.message})`);
-    if (primaryUri !== fallbackUri) {
-      console.log(`🔄 Connecting to local MongoDB fallback: ${fallbackUri}...`);
+    console.error(`❌ Primary MongoDB connection failed (${err.message})`);
+    console.error(`Target URI: ${sanitizedUri}`);
+
+    if (!config.isProduction && primaryUri !== fallbackUri) {
+      console.log(`🔄 Attempting local development MongoDB fallback (${fallbackUri})...`);
       try {
         await mongoose.connect(fallbackUri, { serverSelectionTimeoutMS: 3000 });
         console.log(`✅ Connected to local MongoDB fallback: ${mongoose.connection.host}`);
@@ -35,6 +38,12 @@ export async function connectDB(): Promise<void> {
         throw err;
       }
     } else {
+      if (config.isProduction) {
+        console.error('🚨 Production MongoDB Atlas connection error. Verify that:');
+        console.error('   1. MONGODB_URI environment variable is configured in Render dashboard.');
+        console.error('   2. MongoDB Atlas Network Access has IP 0.0.0.0/0 (allow access from anywhere) whitelisted.');
+        console.error('   3. Database user has readWrite access to the target database.');
+      }
       throw err;
     }
   }

@@ -185,7 +185,17 @@ export const UsersPage: React.FC = () => {
                         </div>
                         <div>
                           <p className="font-bold text-navy-950 text-sm leading-snug">{u.name}</p>
-                          <p className="text-xs text-slate-500 font-mono mt-0.5">{u.email}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-xs text-slate-500 font-mono">{u.email}</span>
+                            {u.googleId && (
+                              <span
+                                className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200"
+                                title={`Linked to Google: ${u.googleEmail || u.email}`}
+                              >
+                                Google Linked
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>

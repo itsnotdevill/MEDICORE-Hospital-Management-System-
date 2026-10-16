@@ -7,6 +7,8 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import mongoSanitize from 'express-mongo-sanitize';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import fs from 'fs';
 
 import { config } from './config/config';
 import { connectDB } from './config/database';
@@ -28,8 +30,16 @@ import bedsRoutes from './routes/beds';
 
 const app = express();
 
+// Trust reverse proxy (Render, Cloudflare, etc.) for HTTPS and correct client IP
+app.set('trust proxy', 1);
+
 // ── Security headers ──────────────────────────────────────────────────────────
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 app.use(
@@ -166,7 +176,25 @@ app.get('/api/system/status', async (_req, res) => {
   });
 });
 
-// ── 404 handler ───────────────────────────────────────────────────────────────
+// ── Serve Frontend in Production / Unified Deployment ────────────────────────
+const clientDistCandidates = [
+  path.resolve(__dirname, '../../client/dist'),
+  path.resolve(process.cwd(), 'client/dist'),
+  path.resolve(__dirname, '../client/dist'),
+];
+const clientDistPath = clientDistCandidates.find((dir) => fs.existsSync(dir));
+
+if (clientDistPath) {
+  app.use(express.static(clientDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
+
+// ── 404 handler for API routes ─────────────────────────────────────────────────
 app.use((_req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
 });
@@ -177,8 +205,11 @@ app.use(errorHandler);
 // ── Start ─────────────────────────────────────────────────────────────────────
 async function start() {
   await connectDB();
-  app.listen(config.port, () => {
-    console.log(`🚀 MediCore server running on http://localhost:${config.port}`);
+  app.listen(config.port, '0.0.0.0', () => {
+    console.log(`🚀 MediCore server running on http://0.0.0.0:${config.port}`);
+    if (config.serverPublicUrl) {
+      console.log(`🌐 Public URL configured: ${config.serverPublicUrl}`);
+    }
   });
 }
 

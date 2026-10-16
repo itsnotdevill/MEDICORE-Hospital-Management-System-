@@ -9,6 +9,8 @@
     "build:server": "npm --prefix server run build",
     "build:client": "npm --prefix client run build",
     "build": "npm run build:server && npm run build:client",
+    "start": "node server/dist/index.js",
+    "render-build": "npm --prefix server install && npm --prefix client install && npm run build",
     "test:server": "npm --prefix server test",
     "seed": "npm --prefix server run seed",
     "seed:atlas": "npm --prefix server run seed:atlas",
