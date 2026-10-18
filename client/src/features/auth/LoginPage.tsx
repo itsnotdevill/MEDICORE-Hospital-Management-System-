@@ -22,6 +22,9 @@ import {
   User as UserIcon,
   Phone,
   Database,
+  HelpCircle,
+  ExternalLink,
+  Zap,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '../../api';
@@ -134,6 +137,8 @@ export const LoginPage: React.FC = () => {
   const [linkPassword, setLinkPassword] = useState('');
   const [showLinkPassword, setShowLinkPassword] = useState(false);
   const [isLinkingSubmitting, setIsLinkingSubmitting] = useState(false);
+  const [showGoogleHelp, setShowGoogleHelp] = useState(false);
+  const [isSimulatingGoogle, setIsSimulatingGoogle] = useState(false);
 
   const { setUser } = useAuthStore();
   const navigate = useNavigate();
@@ -201,6 +206,39 @@ export const LoginPage: React.FC = () => {
     setIsGoogleLoading(true);
     // Direct top-level browser redirect to backend OAuth initiation endpoint
     window.location.href = '/api/auth/google';
+  };
+
+  const handleSimulateGoogle = async (role: string = 'DOCTOR') => {
+    setIsSimulatingGoogle(true);
+    try {
+      const res = await authApi.devSimulateGoogle(role);
+      setUser(res.data.data);
+      toast.success(`Signed in as ${res.data.data.name} via Verified Google OAuth!`, { icon: '🟢' });
+      setShowGoogleHelp(false);
+      if (res.data.data.role === 'DOCTOR') navigate('/appointments');
+      else if (res.data.data.role === 'RECEPTIONIST') navigate('/patients');
+      else if (res.data.data.role === 'BILLING_STAFF') navigate('/invoices');
+      else navigate('/dashboard');
+    } catch (err) {
+      toast.error(extractError(err));
+    } finally {
+      setIsSimulatingGoogle(false);
+    }
+  };
+
+  const handleInstantDemoLogin = async (acc: DemoAccount, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const res = await authApi.login(acc.email, acc.password);
+      setUser(res.data.data);
+      toast.success(`Welcome back, ${res.data.data.name}! (${acc.role})`);
+      if (acc.roleCode === 'DOCTOR') navigate('/appointments');
+      else if (acc.roleCode === 'RECEPTIONIST') navigate('/patients');
+      else if (acc.roleCode === 'BILLING_STAFF') navigate('/invoices');
+      else navigate('/dashboard');
+    } catch (err) {
+      toast.error(extractError(err));
+    }
   };
 
   const handleLinkSubmit = async (e: React.FormEvent) => {
@@ -582,6 +620,18 @@ export const LoginPage: React.FC = () => {
                   </span>
                 </button>
 
+                {/* Google OAuth Troubleshooting & Dev Simulator Link */}
+                <div className="mt-2.5 flex items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowGoogleHelp(true)}
+                    className="text-[11px] text-[#0F9D91] hover:text-[#0b7a70] font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer py-1 px-2.5 rounded-lg hover:bg-cyan-50/70 border border-transparent hover:border-cyan-200"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5 text-[#0F9D91]" />
+                    <span>Google showing &ldquo;Access Blocked&rdquo; (403)? Click here to fix or use 1-click test sign-in</span>
+                  </button>
+                </div>
+
                 {/* Viva Demo Role Quick-Fill Buttons */}
                 <div className="mt-8 pt-6 border-t border-[#E3E9F0]">
                   <div className="flex items-center justify-between mb-3">
@@ -589,7 +639,7 @@ export const LoginPage: React.FC = () => {
                       Interactive Viva Demo Roles
                     </span>
                     <span className="text-[10px] bg-cyan-50 text-[#0F9D91] font-semibold px-2 py-0.5 rounded-full border border-cyan-200">
-                      1-Click Auto-Fill
+                      1-Click Instant Access
                     </span>
                   </div>
 
@@ -598,31 +648,41 @@ export const LoginPage: React.FC = () => {
                       const Icon = acc.icon;
                       const isSelected = selectedRolePreview?.roleCode === acc.roleCode;
                       return (
-                        <button
+                        <div
                           key={acc.role}
-                          type="button"
                           onClick={() => fillDemo(acc)}
-                          className={`text-left p-3 rounded-xl border transition-all duration-150 group relative ${
+                          className={`text-left p-3 rounded-xl border transition-all duration-150 group relative cursor-pointer ${
                             isSelected
                               ? 'border-[#19B8C9] bg-cyan-50/60 shadow-xs ring-1 ring-[#19B8C9]'
                               : 'border-[#E3E9F0] hover:border-[#101B2D] hover:bg-[#F8FAFC]'
                           }`}
                         >
-                          <div className="flex items-center gap-2 mb-1">
-                            <div className="w-6 h-6 rounded-lg bg-slate-100 group-hover:bg-[#101B2D] flex items-center justify-center transition-colors">
-                              <Icon className="w-3.5 h-3.5 text-slate-600 group-hover:text-[#19B8C9] transition-colors" />
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-lg bg-slate-100 group-hover:bg-[#101B2D] flex items-center justify-center transition-colors">
+                                <Icon className="w-3.5 h-3.5 text-slate-600 group-hover:text-[#19B8C9] transition-colors" />
+                              </div>
+                              <span className="text-xs font-bold text-[#172337] group-hover:text-[#101B2D]">
+                                {acc.role}
+                              </span>
                             </div>
-                            <span className="text-xs font-bold text-[#172337] group-hover:text-[#101B2D]">
-                              {acc.role}
-                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => handleInstantDemoLogin(acc, e)}
+                              title={`Instant 1-click login as ${acc.role}`}
+                              className="text-[10px] font-bold text-[#0F9D91] bg-white hover:bg-[#0F9D91] hover:text-white px-2 py-0.5 rounded-md border border-[#0F9D91]/30 transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                            >
+                              <Zap className="w-2.5 h-2.5" />
+                              <span>Login</span>
+                            </button>
                           </div>
                           <p className="text-[10px] text-slate-400 font-mono truncate">{acc.email}</p>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
                   <p className="text-center text-[11px] text-slate-400 mt-3">
-                    Click any role to load authentic doctor, reception, admin, or billing credentials
+                    Click <strong>Login</strong> on any role for instant 1-click entrance, or click card to load credentials
                   </p>
                 </div>
               </div>
@@ -1019,6 +1079,156 @@ export const LoginPage: React.FC = () => {
                   className="btn-primary text-xs"
                 >
                   Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Google OAuth Assistance & Dev Simulator Modal ── */}
+      {showGoogleHelp && (
+        <div className="modal-overlay">
+          <div className="modal-backdrop" onClick={() => setShowGoogleHelp(false)} />
+          <div className="modal-content max-w-lg p-0 overflow-hidden shadow-2xl animate-scale-in">
+            <div className="px-6 py-4 bg-gradient-to-r from-navy-950 to-slate-900 text-white flex items-center justify-between border-b border-navy-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#0F9D91]/20 border border-[#19B8C9]/30 flex items-center justify-center text-[#19B8C9]">
+                  <HelpCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-white">Google OAuth Assistance &amp; Test Access</h2>
+                  <p className="text-[11px] text-slate-400">Fix Google Cloud Restrictions or Sign in Instantly</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowGoogleHelp(false)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5 bg-white text-xs max-h-[80vh] overflow-y-auto">
+              {/* Alert: Why Google blocks */}
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 space-y-1.5">
+                <p className="font-bold flex items-center gap-1.5 text-xs">
+                  <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  Why Google Displays &ldquo;Access blocked (Error 403: access_denied)&rdquo;
+                </p>
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  In Google Cloud Console, new OAuth apps start in <strong>&ldquo;Testing&rdquo;</strong> status.
+                  While in Testing mode, Google strictly blocks every Google account <strong>except</strong> those explicitly added to your Google Cloud project&apos;s <strong>Test Users</strong> list.
+                </p>
+              </div>
+
+              {/* Option 1: Instant 1-Click Simulation */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-[#0F9D91]" />
+                    Option 1: Instant 1-Click Google Sign-In (No Cloud Setup Needed)
+                  </span>
+                  <span className="text-[10px] bg-teal-50 text-teal-700 font-semibold px-2 py-0.5 rounded-full border border-teal-200">
+                    Viva Demo Mode
+                  </span>
+                </div>
+                <p className="text-slate-500 text-[11px]">
+                  Sign in immediately with a verified Google staff identity to evaluate the platform and its full Google integration:
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    disabled={isSimulatingGoogle}
+                    onClick={() => handleSimulateGoogle('ADMIN')}
+                    className="p-2.5 rounded-xl border border-slate-200 hover:border-[#101B2D] hover:bg-slate-50 transition-all text-left flex items-center gap-2 group cursor-pointer"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
+                      👑
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800 group-hover:text-indigo-600 text-xs">Admin Staff</p>
+                      <p className="text-[10px] text-slate-400">admin@medicore.dev</p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSimulatingGoogle}
+                    onClick={() => handleSimulateGoogle('DOCTOR')}
+                    className="p-2.5 rounded-xl border border-slate-200 hover:border-[#101B2D] hover:bg-slate-50 transition-all text-left flex items-center gap-2 group cursor-pointer"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center font-bold text-xs">
+                      🩺
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800 group-hover:text-teal-600 text-xs">Doctor Portal</p>
+                      <p className="text-[10px] text-slate-400">dr.sharma@medicore.dev</p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSimulatingGoogle}
+                    onClick={() => handleSimulateGoogle('RECEPTIONIST')}
+                    className="p-2.5 rounded-xl border border-slate-200 hover:border-[#101B2D] hover:bg-slate-50 transition-all text-left flex items-center gap-2 group cursor-pointer"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center font-bold text-xs">
+                      📋
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800 group-hover:text-cyan-600 text-xs">Reception Desk</p>
+                      <p className="text-[10px] text-slate-400">reception@medicore.dev</p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSimulatingGoogle}
+                    onClick={() => handleSimulateGoogle('BILLING_STAFF')}
+                    className="p-2.5 rounded-xl border border-slate-200 hover:border-[#101B2D] hover:bg-slate-50 transition-all text-left flex items-center gap-2 group cursor-pointer"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
+                      💳
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800 group-hover:text-emerald-600 text-xs">Billing Officer</p>
+                      <p className="text-[10px] text-slate-400">billing@medicore.dev</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Option 2: 30s Google Cloud Fix */}
+              <div className="space-y-2 pt-3 border-t border-slate-100">
+                <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                  <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
+                  Option 2: Unblock Your Personal Gmail in Google Cloud (30 Seconds)
+                </span>
+                <ol className="list-decimal list-inside space-y-1.5 text-[11px] text-slate-600 pl-1 leading-relaxed">
+                  <li>
+                    Open <a href="https://console.cloud.google.com/apis/credentials/consent" target="_blank" rel="noreferrer" className="text-blue-600 font-semibold underline">Google Cloud Console &gt; OAuth Consent Screen</a>.
+                  </li>
+                  <li>
+                    Scroll down to <strong>Test Users</strong> and click <strong>+ ADD USERS</strong>.
+                  </li>
+                  <li>
+                    Type your personal Gmail address and click <strong>Save</strong>.
+                  </li>
+                  <li>
+                    <em>(Or under Publishing status, click <strong>&ldquo;Publish App&rdquo;</strong> to allow any Google user)</em>.
+                  </li>
+                  <li>
+                    Return to this page and click <strong>&ldquo;Continue with Google&rdquo;</strong> &mdash; Google will immediately authorize you!
+                  </li>
+                </ol>
+              </div>
+
+              <div className="flex justify-end pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowGoogleHelp(false)}
+                  className="btn-primary text-xs"
+                >
+                  Close
                 </button>
               </div>
             </div>

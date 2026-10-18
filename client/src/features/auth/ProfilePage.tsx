@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -45,6 +46,27 @@ export const ProfilePage: React.FC = () => {
   const [profileSaving, setProfileSaving] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [unlinkingGoogle, setUnlinkingGoogle] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const oauth = searchParams.get('oauth');
+    if (!oauth) return;
+
+    if (oauth === 'linked_success') {
+      toast.success('Google account successfully linked to your profile!');
+      authApi
+        .getMe()
+        .then((res) => {
+          setUser(res.data.data);
+        })
+        .catch(() => {});
+      setSearchParams({});
+    } else if (oauth === 'conflict') {
+      const msg = searchParams.get('message') || 'This Google account is already linked to another staff account.';
+      toast.error(msg);
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams, setUser]);
 
   const handleUnlinkGoogle = async () => {
     if (!window.confirm('Are you sure you want to unlink your Google account? You will need your hospital password to sign in.')) {

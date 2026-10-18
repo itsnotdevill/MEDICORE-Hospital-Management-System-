@@ -7,6 +7,7 @@ import {
   unlinkGoogleAccount,
   verifyGoogleCredential,
   getGoogleConfig,
+  devSimulateGoogleAuth,
 } from '../controllers/googleAuthController';
 import { authenticate } from '../middleware/auth';
 
@@ -26,5 +27,6 @@ router.post('/google/link', linkGoogleAccount);
 router.post('/google/unlink', authenticate, unlinkGoogleAccount);
 router.post('/google/verify-credential', verifyGoogleCredential);
 router.get('/google/config', getGoogleConfig);
+router.post('/google/dev-simulate', devSimulateGoogleAuth);
 
 export default router;

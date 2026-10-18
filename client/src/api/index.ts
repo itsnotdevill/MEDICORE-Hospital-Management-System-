@@ -30,6 +30,9 @@ export const authApi = {
   verifyGoogleCredential: (credential: string) =>
     api.post<ApiResponse<any>>('/auth/google/verify-credential', { credential }),
 
+  devSimulateGoogle: (role: string = 'DOCTOR') =>
+    api.post<ApiResponse<User>>('/auth/google/dev-simulate', { role }),
+
   getHealth: () => api.get('/health'),
   getSystemStatus: () => api.get('/system/status'),
 };
@@ -81,6 +84,8 @@ export const doctorsApi = {
   create: (data: unknown) => api.post('/doctors', data),
 
   update: (id: string, data: unknown) => api.put(`/doctors/${id}`, data),
+
+  delete: (id: string) => api.delete(`/doctors/${id}`),
 };
 
 export const patientsApi = {
