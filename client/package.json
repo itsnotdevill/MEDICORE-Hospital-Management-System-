@@ -32,8 +32,11 @@
     "react-hot-toast": "^2.6.1",
     "react-router-dom": "^6.30.6",
     "recharts": "^3.10.1",
+    "@vitejs/plugin-react": "^6.1.1",
     "tailwind-merge": "^3.7.0",
     "tailwindcss": "^3.4.19",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0",
     "zod": "^3.25.76",
     "zustand": "^5.0.15"
   },
@@ -41,9 +44,6 @@
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
-    "@vitejs/plugin-react": "^6.1.1",
-    "oxlint": "^1.81.0",
-    "typescript": "~6.0.2",
-    "vite": "^8.3.0"
+    "oxlint": "^1.81.0"
   }
 }

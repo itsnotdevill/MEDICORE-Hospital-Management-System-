@@ -67,7 +67,12 @@ export function getGoogleConfig(_req: Request, res: Response): void {
  * Initiates the Google OAuth 2.0 / OpenID Connect authorization code flow
  */
 export function startGoogleAuth(req: Request, res: Response): void {
-  const frontendUrl = config.clientOrigin.replace(/\/$/, '');
+  const frontendUrl =
+    config.clientOrigin && !config.clientOrigin.includes('localhost')
+      ? config.clientOrigin.replace(/\/$/, '')
+      : req.get('host') && !req.get('host')?.includes('localhost')
+      ? `${req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http'}://${req.get('host')}`
+      : config.clientOrigin.replace(/\/$/, '');
 
   if (!config.googleClientId || !config.googleClientSecret) {
     console.warn('⚠️ Google OAuth is not configured. Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET.');
@@ -105,7 +110,12 @@ export async function handleGoogleCallback(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  const frontendUrl = config.clientOrigin.replace(/\/$/, '');
+  const frontendUrl =
+    config.clientOrigin && !config.clientOrigin.includes('localhost')
+      ? config.clientOrigin.replace(/\/$/, '')
+      : req.get('host') && !req.get('host')?.includes('localhost')
+      ? `${req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http'}://${req.get('host')}`
+      : config.clientOrigin.replace(/\/$/, '');
 
   const { code, state, error } = req.query as {
     code?: string;

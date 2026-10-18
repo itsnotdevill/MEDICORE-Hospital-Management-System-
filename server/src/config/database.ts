@@ -2,11 +2,13 @@ import dns from 'dns';
 import mongoose from 'mongoose';
 import { config } from './config';
 
-// Fix Windows DNS SRV lookup issues for MongoDB Atlas
-try {
-  dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
-} catch {
-  // Ignore in restricted environments
+// Fix Windows-only DNS SRV lookup issues for MongoDB Atlas (preserve cloud container Linux DNS)
+if (process.platform === 'win32') {
+  try {
+    dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+  } catch {
+    // Ignore in restricted environments
+  }
 }
 
 export async function connectDB(): Promise<void> {

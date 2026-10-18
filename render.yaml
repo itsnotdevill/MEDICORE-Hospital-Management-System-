@@ -16,10 +16,13 @@ services:
       - key: NODE_ENV
         value: production
 
+      - key: NODE_VERSION
+        value: 20.18.0
+
       - key: PORT
         value: 10000
 
-      # MongoDB Atlas connection string (provided securely via Render dashboard)
+      # MongoDB Atlas connection string (configured in Render Dashboard)
       - key: MONGODB_URI
         sync: false
 
@@ -30,20 +33,20 @@ services:
       - key: JWT_EXPIRES_IN
         value: 15m
 
+      # Google Cloud OAuth 2.0 Credentials (configured in Render Dashboard)
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+
+      # Google Cloud OAuth 2.0 Client Secret (configured in Render Dashboard)
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+
       # Deployed Render Web Service Public URL (e.g., https://medicore-hms.onrender.com)
       - key: SERVER_PUBLIC_URL
         sync: false
 
       # Client origin for CORS and cookie origin (matches SERVER_PUBLIC_URL in unified deployment)
       - key: CLIENT_ORIGIN
-        sync: false
-
-      # Google Cloud OAuth 2.0 Client ID (from Google Cloud Console)
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-
-      # Google Cloud OAuth 2.0 Client Secret (from Google Cloud Console)
-      - key: GOOGLE_CLIENT_SECRET
         sync: false
 
       # Exact OAuth Callback URI configured in Google Cloud Console

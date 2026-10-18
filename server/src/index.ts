@@ -44,7 +44,20 @@ app.use(
 // ── CORS ─────────────────────────────────────────────────────────────────────
 app.use(
   cors({
-    origin: config.clientOrigin,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (such as same-origin unified requests, mobile apps, curl)
+      if (!origin) return callback(null, true);
+      if (
+        !config.isProduction ||
+        !config.clientOrigin ||
+        origin === config.clientOrigin ||
+        origin.endsWith('.onrender.com') ||
+        origin.includes('localhost')
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   })
 );
@@ -204,13 +217,22 @@ app.use(errorHandler);
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 async function start() {
-  await connectDB();
-  app.listen(config.port, '0.0.0.0', () => {
+  const server = app.listen(config.port, '0.0.0.0', () => {
     console.log(`🚀 MediCore server running on http://0.0.0.0:${config.port}`);
     if (config.serverPublicUrl) {
       console.log(`🌐 Public URL configured: ${config.serverPublicUrl}`);
     }
   });
+
+  try {
+    await connectDB();
+  } catch (err: any) {
+    console.error('⚠️ Initial database connection warning:', err?.message || err);
+    if (!config.isProduction) {
+      server.close();
+      process.exit(1);
+    }
+  }
 }
 
 if (config.nodeEnv !== 'test') {
