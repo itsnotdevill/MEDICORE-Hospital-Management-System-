@@ -4,7 +4,7 @@
 services:
   - type: web
     name: medicore-hms
-    env: node
+    runtime: node
     plan: free
     region: oregon
     buildCommand: npm run render-build
@@ -22,34 +22,11 @@ services:
       - key: PORT
         value: 10000
 
-      # MongoDB Atlas connection string (configured in Render Dashboard)
       - key: MONGODB_URI
-        sync: false
+        value: mongodb+srv://medicore_db:medicore_dbofficial@cluster0.a9jzgrg.mongodb.net/medicore_db?retryWrites=true&w=majority
 
-      # 64-character cryptographic JWT signing secret
       - key: JWT_SECRET
         generateValue: true
 
       - key: JWT_EXPIRES_IN
         value: 15m
-
-      # Google Cloud OAuth 2.0 Credentials (configured in Render Dashboard)
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-
-      # Google Cloud OAuth 2.0 Client Secret (configured in Render Dashboard)
-      - key: GOOGLE_CLIENT_SECRET
-        sync: false
-
-      # Deployed Render Web Service Public URL (e.g., https://medicore-hms.onrender.com)
-      - key: SERVER_PUBLIC_URL
-        sync: false
-
-      # Client origin for CORS and cookie origin (matches SERVER_PUBLIC_URL in unified deployment)
-      - key: CLIENT_ORIGIN
-        sync: false
-
-      # Exact OAuth Callback URI configured in Google Cloud Console
-      # (e.g., https://medicore-hms.onrender.com/api/auth/google/callback)
-      - key: GOOGLE_CALLBACK_URL
-        sync: false

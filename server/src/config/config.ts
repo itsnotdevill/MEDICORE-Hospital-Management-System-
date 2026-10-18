@@ -9,8 +9,10 @@ const clientOrigin = process.env.CLIENT_ORIGIN || (isProduction ? serverPublicUr
 export const config = {
   port,
   nodeEnv: process.env.NODE_ENV || 'development',
-  mongoUri: process.env.MONGODB_URI || '',
-  jwtSecret: process.env.JWT_SECRET || 'fallback-dev-secret-change-in-production',
+  mongoUri:
+    process.env.MONGODB_URI ||
+    'mongodb+srv://medicore_db:medicore_dbofficial@cluster0.a9jzgrg.mongodb.net/medicore_db?retryWrites=true&w=majority',
+  jwtSecret: process.env.JWT_SECRET || 'medicore_super_secure_jwt_secret_development_key_university_project_2026',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '15m',
   clientOrigin,
   serverPublicUrl,
